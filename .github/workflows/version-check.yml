@@ -1,0 +1,36 @@
+name: Demo Version Comparison
+
+on:
+  workflow_dispatch:
+    inputs:
+      new_version:
+        description: "Enter new version"
+        required: true
+        default: "1.0.0"
+
+jobs:
+  compare-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # Pretend existing version is stored in a file
+      - name: Get existing version
+        id: get_existing
+        run: |
+          echo "1.0.0" > version.txt
+          echo "existing_version=$(cat version.txt)" >> $GITHUB_OUTPUT
+
+      # Compare existing vs new
+      - name: Compare versions
+        run: |
+          echo "Existing version: ${{ steps.get_existing.outputs.existing_version }}"
+          echo "New version: ${{ github.event.inputs.new_version }}"
+
+          if [ "${{ steps.get_existing.outputs.existing_version }}" = "${{ github.event.inputs.new_version }}" ]; then
+            echo "❌ Version already exists. Build skipped."
+            exit 1
+          else
+            echo "✅ New version detected. Proceeding with build..."
+          fi
